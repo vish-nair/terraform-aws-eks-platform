@@ -27,7 +27,7 @@ VPC (multi-AZ, public + private subnets)
 
 ```hcl
 module "eks_platform" {
-  source = "github.com/vishnunair/terraform-aws-eks-platform"
+  source = "github.com/vish-nair/terraform-aws-eks-platform"
 
   cluster_name    = "my-cluster"
   cluster_version = "1.30"
