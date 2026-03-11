@@ -1,6 +1,31 @@
+# Create a Kubernetes Secret from the Secrets Manager value so the API key
+# is never passed through Helm values or stored in Terraform state as plaintext.
 data "aws_secretsmanager_secret_version" "datadog_api_key" {
   count     = var.datadog_api_key_secret_arn != "" ? 1 : 0
   secret_id = var.datadog_api_key_secret_arn
+}
+
+resource "kubernetes_secret" "datadog_api_key" {
+  count = var.datadog_api_key_secret_arn != "" ? 1 : 0
+
+  metadata {
+    name      = "datadog-secret"
+    namespace = "datadog"
+  }
+
+  data = {
+    api-key = data.aws_secretsmanager_secret_version.datadog_api_key[0].secret_string
+  }
+
+  type = "Opaque"
+
+  depends_on = [kubernetes_namespace.datadog]
+}
+
+resource "kubernetes_namespace" "datadog" {
+  metadata {
+    name = "datadog"
+  }
 }
 
 # ── IAM: Datadog Agent IRSA ──────────────────────────────────────────────────
@@ -56,18 +81,20 @@ resource "aws_iam_role_policy" "datadog" {
 resource "helm_release" "datadog" {
   name             = "datadog"
   namespace        = "datadog"
-  create_namespace = true
+  create_namespace = false
   repository       = "https://helm.datadoghq.com"
   chart            = "datadog"
   version          = var.datadog_agent_version
   wait             = true
   timeout          = 300
 
+  depends_on = [kubernetes_secret.datadog_api_key]
+
   values = [
     yamlencode({
       datadog = {
-        apiKey = var.datadog_api_key_secret_arn != "" ? data.aws_secretsmanager_secret_version.datadog_api_key[0].secret_string : ""
-        clusterName = var.cluster_name
+        apiKeyExistingSecret = var.datadog_api_key_secret_arn != "" ? "datadog-secret" : ""
+        clusterName          = var.cluster_name
         logs = {
           enabled               = true
           containerCollectAll   = true

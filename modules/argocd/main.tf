@@ -15,7 +15,7 @@ resource "helm_release" "argocd" {
       }
       configs = {
         params = {
-          "server.insecure" = true
+          "server.insecure" = var.insecure_mode
         }
         cm = {
           "application.resourceTrackingMethod" = "annotation"

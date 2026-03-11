@@ -15,3 +15,9 @@ variable "enable_ha" {
   type        = bool
   default     = false
 }
+
+variable "insecure_mode" {
+  description = "Run ArgoCD server in insecure mode (HTTP). Set to true only when TLS is terminated upstream by an ingress/load balancer."
+  type        = bool
+  default     = false
+}

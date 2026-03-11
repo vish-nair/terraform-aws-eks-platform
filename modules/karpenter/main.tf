@@ -265,6 +265,12 @@ resource "kubectl_manifest" "karpenter_node_class" {
       securityGroupSelectorTerms:
         - tags:
             kubernetes.io/cluster/${var.cluster_name}: owned
+      blockDeviceMappings:
+        - deviceName: /dev/xvda
+          ebs:
+            volumeSize: 50Gi
+            volumeType: gp3
+            encrypted: true
       tags:
         karpenter.sh/discovery: ${var.cluster_name}
   YAML

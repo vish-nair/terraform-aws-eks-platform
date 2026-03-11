@@ -20,9 +20,9 @@ variable "private_subnet_ids" {
 }
 
 variable "endpoint_public_access" {
-  description = "Enable public API server endpoint"
+  description = "Enable public API server endpoint. Disabled by default — enable only for dev/testing or when access via VPN/bastion is not feasible."
   type        = bool
-  default     = true
+  default     = false
 }
 
 variable "tags" {
